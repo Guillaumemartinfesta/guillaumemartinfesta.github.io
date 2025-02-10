@@ -181,6 +181,7 @@ exclude:
   - FAQ.md
   - Gemfile
   - Gemfile.lock
+  - templates/
   - INSTALL.md
   - LICENSE
   - lighthouse_results/
