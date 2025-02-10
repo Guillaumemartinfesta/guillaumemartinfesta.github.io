@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Mixture of Experts: From the ground up to use in LLMs."" 
+title: "Mixture of Experts: From the ground up to use in LLMs." 
 date: 2024-10-02
 description: ""
 tags: formatting links
