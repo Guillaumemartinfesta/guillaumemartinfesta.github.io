@@ -23,15 +23,15 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-",
+        },{id: "post-mixture-of-experts-from-the-ground-up-to-use-in-llms",
       
-        title: "",
+        title: "Mixture of Experts: From the ground up to use in LLMs.",
       
       description: "",
       section: "Posts",
       handler: () => {
         
-          window.location.href = "/blog/2025/2025-02-03-my-template-post/";
+          window.location.href = "/blog/2024/my-template-post/";
         
       },
     },{id: "news-a-simple-inline-announcement",
