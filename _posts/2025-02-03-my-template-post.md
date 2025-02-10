@@ -8,9 +8,9 @@ categories: sample-posts
 ---
 
 
-I/ Fondations of Mixture of Experts (MoE)
+# I/ Fondations of Mixture of Experts (MoE)
 
-1) Problem Description
+## 1) Problem Description
 
 Let's say we want to fit this distribution of y given x: 
 
@@ -42,7 +42,7 @@ More formally we could introduce a categorical latent variable z such that $p(z|
 
 The model parameters are then $\theta_1,...,\theta_k$ and $V \in \mathcal{M}_{2 \times N}$. We denote by $\theta$ all these parameters. 
 
-2) Fitting MoEs: the EM algorithm
+## 2) Fitting MoEs: the EM algorithm
 
 Fitting a Latent Variable Model is not straight forward. The joint log probability $log(p(y,z|x,\theta))$ is easy to compute but the observed data log likelihood is hard to compute since $log(p(y|x,\theta))=log(\sum p(y,z|x,theta))$. 
 
@@ -58,7 +58,7 @@ The EM algorithm does exactly that in order by alternating between 2 steps:
 
 In other words the EM algorithm iteratively computes $\hat{\theta}^{t+1}=\underset{\theta}{argmax}\sum_{i=1}^n\sum_{k=1}^Nlog[p(y_i,z_i=k|x_i,\theta)]p(z_i=k|x_i,\hat{\theta^t})$
 
-3) Theoretical proofs for the EM algorithm
+## 3) Theoretical proofs for the EM algorithm
 
 We will show in this part that the EM algorithm monotically increases the observed data log likelihood. 
 
@@ -77,6 +77,6 @@ To make the point more general we assume the variable z is continuous (the same 
 \end{align}
 \]
 
-II/ Use of MoEs for LLMs
+# II/ Use of MoEs for LLMs
 
 
