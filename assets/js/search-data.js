@@ -31,7 +31,7 @@ ninja.data = [{
       section: "Posts",
       handler: () => {
         
-          window.location.href = "/blog/2024/my-template-post/";
+          window.location.href = "/blog/2024/moe/";
         
       },
     },{id: "news-a-simple-inline-announcement",
