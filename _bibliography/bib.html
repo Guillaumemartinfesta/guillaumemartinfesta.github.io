@@ -1,0 +1,9 @@
+---
+---
+{% for reference in site.data.bibliography %}
+  <p>
+    [{{ forloop.index }}] {{ reference.author }}. 
+    <i>TEST{{ reference.title}}</i>. 
+    {{ reference.venue }}, {{ reference.year }}.
+  </p>
+{% endfor %}
