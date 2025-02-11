@@ -5,13 +5,12 @@ date: 2024-10-02
 description: ""
 tags: formatting links
 categories: llm
+citation: true
 ---
 
+# Fondations of Mixture of Experts (MoE)
 
-# I/ Fondations of Mixture of Experts (MoE)
-
-## 1) Problem Description
-
+## Problem Description
 Let's say we want to fit this distribution of y given x: 
 
 We first introduce the direct problem:
@@ -29,9 +28,9 @@ As we will see shortly after we swaped the x and y axis as the problem of intere
 We can see here that predicting x given y corresponds to predicting a trend x=f(y) and accounting for some measuring noise. 
 As the trend is a function mapping from y to x (with only one x associated to a given y) the distribution we are trying to predict is unimodal, a sensible model to fit to this data would thus have this form:
 
-$y \sim \mathcal{N}(\mu(x),\sigma^2)$
+$y \sim \mathcal{N}(\mu(x \mid \theta),\sigma^2)$
 
-The parameters to fit for this model are the parameters $\theta$ of $\mu(x)$ estimating the mode/trend and $\sigma^2$ accounting for the residual noise. $\mu(x)$ could be any sort of model: linear regression, polynomial regression, kernel based model, neural network... 
+The parameters to fit for this model are the parameters $\theta$ of $\mu(x \mid \theta)$ estimating the mode/trend and $\sigma^2$ accounting for the residual noise. $\mu(x \mid \theta)$ could be any sort of model: linear regression, polynomial regression, kernel based model, neural network... 
 
 This problem description is very classic and enables to simply fit by trying to minimize the NLL(Negative Log Likelihood). 
 
@@ -52,11 +51,11 @@ While the direct problem led to a simple unimodal distribution, we see that the 
 
 Luckily Mixture of Experts(MoE) is a type of models that enables to solve this issue. MoEs belong to the class Latent Variable Models(LVM) that rely on some hidden variables (the latent variables) to make predictions. 
 
-More formally we could introduce a categorical latent variable z such that $p(z\mid x)=Cat(z\mid Softmax(V^T(1,x)))$ that will determine the "expert" to use.The function $p(z\mid x)$ is called the gating function. Each of the N experts can then be a model of the form described earlier $p(y\mid x,z=k)=\mathcal{N}(y\mid\mu_k(x),\sigma_k^2)$ describing an unimodal distribution. As for a given x we could have a nonzero probability of "activating" each expert, we can then describe any distribution having less than N modes. 
+More formally we could introduce a categorical latent variable z such that $p(z\mid x)=Cat(z\mid Softmax(V^T(1,x)))$ that will determine the "expert" to use.The function $p(z\mid x)$ is called the gating function. Each of the N experts can then be a model of the form described earlier $p(y\mid x,z=k)=\mathcal{N}(y\mid\mu_k(x \mid \theta_k),\sigma_k^2)$ describing an unimodal distribution. As for a given x we could have a nonzero probability of "activating" each expert, we can then describe any distribution having less than N modes. 
 
-The model parameters are then $\theta_1,...,\theta_k$ and $V \in \mathcal{M}_{2 \times N}$. We denote by $\theta$ all these parameters. 
+The model parameters are then $\theta_1,...,\theta_k,\sigma_1^2,...,\sigma_k^2$  and $V \in \mathcal{M}_{2 \times N}$. We denote by $\theta$ all these parameters. 
 
-## 2) Fitting MoEs: the EM algorithm
+## Fitting MoEs: the EM algorithm
 
 Fitting a Latent Variable Model is not straight forward. The joint log probability $log(p(y,z\mid x,\theta))$ is easy to compute but the observed data log likelihood is hard to compute since $log(p(y\mid x,\theta))=log(\sum p(y,z\mid x,theta))$. 
 
@@ -66,15 +65,15 @@ As the complete data log probability is easy to compute we estimate the observed
 
 The EM algorithm does exactly that in order by alternating between 2 steps:
 
-- The E (Estimation) step  where we estimate $q(z_i\mid x_i,y_i)=p(z_i=k\mid x_i,y_i,\hat{\theta}^t)$
+- The E (Estimation) step  where we estimate $q^t(z_i\mid x_i,y_i)=p(z_i=k\mid x_i,y_i,\hat{\theta}^t)$
 
-- The M (Maximization) step were we compute $\hat{\theta}^{t+1}=\underset{\theta}{argmax}\mathbb{E}_{z \sim q(z\mid x,y)}[log(P(y,z\mid x))]$
+- The M (Maximization) step were we compute $\hat{\theta}^{t+1}=\underset{\theta}{argmax}\sum_{i=1}^n\mathbb{E}_{z_i \sim q^t(z_i\mid x_i,y_i)}[log(P(y_i,z_i\mid x_i))]$
 
 In other words the EM algorithm iteratively computes $\hat{\theta}^{t+1}=\underset{\theta}{argmax}\sum_{i=1}^n\sum_{k=1}^Nlog[p(y_i,z_i=k\mid x_i,\theta)]p(z_i=k\mid x_i,\hat{\theta^t})$
 
-#TODO: Explain when it is fast to do like that and the overall gain. 
+This method can be used whenever we can approximate the posterior probability in the E step. It is however also necessary to be able to fit rapidly the expert models (for example by having closed form formulas or a convex NLL) as we will have to fit the N experts for every iteration.  
 
-## 3) Theoretical proofs for the EM algorithm
+## Theoretical proofs for the EM algorithm
 
 We will show in this part that the EM algorithm monotically increases the observed data log likelihood. 
 
@@ -83,15 +82,87 @@ Our first goal is to derive a formula showing how far of our estimation of the o
 To make the point more general we assume the variable z is continuous (the same results also hold for discrete z)
 
 $$
-\begin{align}
-\mathbb{E}_{z \sim q(z\mid x,y)}[\log(p(y,z\mid x,\theta))]
-&= \int_z q(z\mid x,y) \log(p(y,z\mid x,\theta)) \, dz \\
+\begin{align*}
+L_{\theta,q}(x,y)=\mathbb{E}_{z \sim q(z\mid x,y)}[\log(p(y,z\mid x,\theta))] &= \int_z q(z\mid x,y) \log(p(y,z\mid x,\theta)) \, dz \\
 &= \int_z q(z\mid x,y) \left[ \log\left(\frac{p(y,z\mid x,\theta)}{q(z\mid x,y)}\right) + \log(q(z\mid x,y)) \right] dz \\
 &= \int_z q(z\mid x,y) \log\left(\frac{p(z\mid x,y,\theta) p(y\mid x,\theta)}{q(z\mid x,y)}\right) dz + \mathbb{H}_q \\
 &= \int_z q(z\mid x,y) \log(p(y\mid x,\theta)) \, dz - \int_z q(z\mid x,y) \log\left(\frac{q(z\mid x,y)}{p(z\mid x,y,\theta)}\right) dz + \mathbb{H}_q \\
-&= \log(p(y\mid x,\theta)) + D_{KL}(q(.\mid x,y) \mid \mid p(.\mid x,y,\theta)) + \mathbb{H}_q
+&= \log(p(y\mid x,\theta)) - D_{KL}(q(z\mid x,y) \mid \mid p(z\mid x,y,\theta)) + \mathbb{H}_q
+\end{align*}
+$$
+
+As the term $\mathbb{H}_q$ doesn't depend on $\theta$ we have:
+
+$$
+\begin{align}
+&\underset{\theta}{argmax}L_{\theta,q}(x,y)=\underset{\theta}{argmax}\mathcal{L} \\
+
+&\text{with :} \mathcal{L}(\theta,q)=L_{\theta,q}(x,y)-\mathbb{H}_q=\log(p(y\mid x,\theta)) - D_{KL}(q(z\mid x,y) \mid \mid p(z\mid x,y,\theta)) \text{the evidence lower bound or ELBO.}
 \end{align}
 $$
-# II/ Use of MoEs for LLMs
+
+As its name suggests the ELBO is a lower bound of the observed data log likelihood. 
+
+At time step t we take $q^t(z_i\mid x_i,y_i)=p(z_i=k\mid x_i,y_i,\hat{\theta}^t)$ thus leading to the KL divergence term being 0 for $\theta=\hat{\theta}^t$. We note $\mathcal{L}(\theta,\hat{\theta}^t)=\mathcal{L}(\theta,q^t)$
+
+This property of having a lower bound that is tight around $\hat{\theta}^t$ is the one guaranteeing the increase in the log likelihood as we have:
+
+$$
+\begin{align}
+log(p(y|x,\hat{\theta}^{t+1})) &\geq \mathcal{L}(\hat{\theta}^t,\hat{\theta}^{t+1}) \\
+&\geq \mathcal{L}(\hat{\theta}^t,\hat{\theta}^{t+1}) \\
+&=log(p(y|x,\hat{\theta}^{t}))
+\end{align}
+$$. 
+
+The EM is thus apart of the MM(Minoration Maximization) class of algorithms, aiming at maximizing a tight minoration of a given objective function. Other important ML algorithms like TRPO(Trust Region Policy Optimization) in the domain of RL rely on this class of methods. 
+
+
+# Use of MoEs in Deep Learning and LLMs
+
+## Mixture Density Networks (MDN)
+
+In the case of neural networks, using the EM algorithm might not be the most appropriate choice for several reasons:
+
+- Training a neural network is costly, using EM would lead to $N_{experts} \times N_{EM\_iterations}$ training procedures introducing a huge overhead.
+- One of the strength of EM is that it keeps the convexity properties of the expert models for the M step. The loss landscape of Neural Networks being non convex this property isn't of any interest. 
+
+What we can instead do is to estimate the gating functions using a Neural Network. This approach is of particular interest given the structure of NN as we can have the first part of the model being shared to then add specific heads for each expert and for the gating functions. Such an approach enables to "factorize" computations and to perform inference in one forward pass. 
+
+The parameters can then be updated using with backpropagation using the negative log likelihood as a loss $log(p(y \mid x))=log\left(\sum_{k=1}^{N}p(y \mid z=k, x)p(z=k \mid x)\right)$
+
+TODO: Insert picture of architecture
+
+Thanks to the flexibility of this approach we can generalize MoEs as taking the average of the outputs of each expert $f_k(x)$ weighted by the gating functions $p(z=k \mid x)$ instead of only considering the probabilistic approach. We thus have more generally $f(x)=\sum_{k=1}^Nf_k(x)p(z=k \mid x)$
+
+Finally we can define Mixture of Experts at the layer level enabling them to be interleaved with other blocks (MLP block, Attention block...) and/or to be stacked one after the other. 
+
+
+## Use of MoEs in LLM
+
+The initial framing of mixture of experts was to be able to represent multimodal distribution for $p(y \mid x)$. This is however of no use for LLMs as they directly output the probability distribution corresponding to the next token. 
+
+Mixture of Experts can however turn out to be very useful if we add sparsity constraints to the gating functions. The output of a the MoE module being the average of the experts weighted by the gating functions, we have that experts whose gating function is small contribute little to nothing to the final output. We can thus approximate the output by setting the smallest gating functions to zero thus avoiding the computation of the corresponding expert outputs. 
+
+One common method is to use as a final gating function $Softmax(Top_K(p(z=k)_{k \in [1:N]}))$ where we only take the k highest gating function logits (pre softmax) before applying the softmax to them. 
+
+
+
+
+
+ 
+
+
+Test:
+
+{% cite einstein1905movement %}
+
+# References
+
+{% bibliography --cited %}
+
+
+
+
 
 

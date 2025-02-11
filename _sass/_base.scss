@@ -187,7 +187,9 @@ ul.task-list input[type="checkbox"] {
 
 .citation,
 .citation-number {
-  color: var(--global-theme-color);
+  font-style: italic;
+  text-decoration: underline;
+  color: var(--global-theme-color); //#000000
 }
 
 // Profile
