@@ -23,9 +23,9 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-mixture-of-experts-from-the-ground-up-to-use-in-llms",
+        },{id: "post-mixture-of-experts-from-foundations-to-advanced-applications-in-llms",
       
-        title: "Mixture of Experts: From the ground up to use in LLMs.",
+        title: "Mixture of Experts: From Foundations to Advanced Applications in LLMs",
       
       description: "",
       section: "Posts",
