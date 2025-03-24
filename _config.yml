@@ -267,8 +267,11 @@ display_categories: ["external-services"] # these categories will be displayed o
 scholar:
   style: apa
   locale: en
-
-  source: /_bibliography/
+  sort_by: year,month
+  order: descending
+  group_by: none
+  group_order: ascending
+  source: _bibliography
   bibliography: references.bib
   bibliography_template: "{{reference}}"
   # Note: if you have latex math in your bibtex, the latex filter
